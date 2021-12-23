@@ -1,5 +1,7 @@
 # Generate PEG topology for GROMACS
 
+<img align="right" width="30%" src="PEG.png">
+
 ### Description
 
 Python script for generating a single all-atom PEG molecule with a number Nseg of monomer. The charmm36 force field is used, and the output is readable by GROMACS.
