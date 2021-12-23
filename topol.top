@@ -1,0 +1,9 @@
+#include "ff/forcefield.itp"
+#include "ff/peg.itp"
+
+[ System ]
+PEG in water
+
+[ Molecules ]
+
+PEG 1
