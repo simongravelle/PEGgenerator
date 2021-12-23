@@ -13,7 +13,7 @@ Generate the configuration files using generatePEGgromacs.ipynb, or simply by ex
 ```
     sh generatepeg.sh
 ```
-You can vary the number of polymer by changing the value of Nseg. Then, minimise the energy of the PEG using gromacs:
+You can vary the number of monomer by changing the value of Nseg. Then, minimise the energy of the PEG using gromacs:
 
 ```
     gmx grompp -f input/em.mdp -o em -pp em -po em
