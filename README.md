@@ -22,7 +22,7 @@ You can vary the number of polymer by changing the value of Nseg. Then, minimise
 
 ### Output
 
-This [video](https://www.youtube.com/watch?v=8ldIHP175TI) has been made with this script.
+This [video](https://www.youtube.com/watch?v=8ldIHP175TI) has been made using the PEG molecule generated with this script.
 
 ### Contact
 
