@@ -19,6 +19,11 @@ You can vary the number of polymer by changing the value of Nseg. Then, minimise
     gmx grompp -f input/em.mdp -o em -pp em -po em
     gmx mdrun -v -deffnm em
 ```
+Eventually, relaxe the PEG molecule in the NVT ensemble:
+```
+    gmx grompp -f input/nvt.mdp -o nvt -pp nvt -po nvt
+    gmx mdrun -v -deffnm nvt
+```
 
 ### Output
 

@@ -4,7 +4,7 @@ set -e
 
 jupyter nbconvert --to script 'generatePEGgromacs.ipynb'
 
-Nseg=6
+Nseg=12
 newline='Nseg = '$Nseg
 linetoreplace=$(cat generatePEGgromacs.py | grep 'Nseg =')
 sed -i '/'"$linetoreplace"'/c\'"$newline" generatePEGgromacs.py
