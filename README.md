@@ -27,7 +27,7 @@ Eventually, relaxe the PEG molecule in the NVT ensemble:
 
 ### Output
 
-This [video](https://www.youtube.com/watch?v=8ldIHP175TI) has been made using the PEG molecule generated with this script.
+Pre-equilibrated [PEG600](PEG600/) and [PEG1200](PEG1200/) topology files are given. This [video](https://www.youtube.com/watch?v=8ldIHP175TI) has been made using the PEG molecule generated with this script.
 
 ### Contact
 
