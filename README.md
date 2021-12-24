@@ -18,6 +18,7 @@ You can vary the number of monomer by changing the value of Nseg. Then, minimise
 ```
     gmx grompp -f input/em.mdp -o em -pp em -po em
     gmx mdrun -v -deffnm em
+    mv em.gro conf.gro
 ```
 Eventually, relaxe the PEG molecule in the NVT ensemble:
 ```
@@ -27,7 +28,12 @@ Eventually, relaxe the PEG molecule in the NVT ensemble:
 
 ### Output
 
-Pre-equilibrated [PEG600](PEG600/) and [PEG1200](PEG1200/) topology files are given. This [video](https://www.youtube.com/watch?v=FkFdO58UdOA) has been made using the PEG molecule generated with this script.
+Pre-equilibrated topology files are given here : 
+* [PEG200](PEG200/)
+* [PEG600](PEG600/)
+* [PEG1200](PEG1200/) 
+ 
+This [video](https://www.youtube.com/watch?v=FkFdO58UdOA) has been made using the PEG molecule generated with this script.
 
 ### Contact
 
