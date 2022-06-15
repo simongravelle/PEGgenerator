@@ -27,26 +27,27 @@ bond_coeff 	5 544.635 0.9600
 angle_coeff	1 50.0000 109.0000 0.0000 0.0000
 angle_coeff	2 26.5000 110.1000 22.5300 2.179   
 angle_coeff	3 45.0000 111.5000 0.0000 0.0000 
-angle_coeff	4 13.0258 418.4000 0.0000 0.0000
+angle_coeff	4 13.0258 109.4000 0.0000 0.0000
 angle_coeff	5 35.5000 109.0000 5.4000 1.802
 angle_coeff	6 55.0000 108.8900 0.0000 0.0000
 angle_coeff	7 75.7000 110.1000 0.0000 0.0000
 angle_coeff	8 95.0000 109.7000 0.0000 0.0000
    
 # Dihedral coeff
+# weighting factor put to 0, possibly wrong
 
-dihedral_coeff	1 0.57 1 0
-dihedral_coeff	2 0.29 2 0
-dihedral_coeff	3 0.43 3 0
-dihedral_coeff	4 0.59 1 180
-dihedral_coeff	5 1.16 2 0
-dihedral_coeff	6 0.12 1 0
-dihedral_coeff	7 0.42 2 0
-dihedral_coeff	8 0.29 3 0
-dihedral_coeff	9 2.87 1 180
-dihedral_coeff	10 0.03 2 0
-dihedral_coeff	11 0.23 3 0
-dihedral_coeff	12 1.36 1 180
-dihedral_coeff	13 0.16 2 0
-dihedral_coeff	14 1.01 3 0
+dihedral_coeff	1 0.57 1 0 0
+dihedral_coeff	2 0.29 2 0 0
+dihedral_coeff	3 0.43 3 0 0
+dihedral_coeff	4 0.59 1 180 0
+dihedral_coeff	5 1.16 2 0 0 
+dihedral_coeff	6 0.12 1 0 0 
+dihedral_coeff	7 0.42 2 0 0
+dihedral_coeff	8 0.29 3 0 0
+dihedral_coeff	9 2.87 1 180 0
+dihedral_coeff	10 0.03 2 0 0
+dihedral_coeff	11 0.23 3 0 0
+dihedral_coeff	12 1.36 1 180 0
+dihedral_coeff	13 0.16 2 0 0
+dihedral_coeff	14 1.01 3 0 0
 
