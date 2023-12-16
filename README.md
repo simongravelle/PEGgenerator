@@ -10,19 +10,20 @@ and LAMMPS.
 
 ### How to (for GROMACS):
 
-Generate the configuration files using generatePEGgromacs.ipynb, or simply by exebuting generatepeg.sh:
+Generate the configuration files using generatePEGgromacs.ipynb, or simply by executing generatepeg.sh
+from the GROMACS folder:
 
 ```
     sh generatepeg_gromacs.sh
 ```
-You can vary the number of monomer by changing the value of Nseg. Then, minimise the energy of the PEG using gromacs:
+You can vary the number of monomer by changing the value of Nseg. Then, minimize the energy of the PEG using GROMACS:
 
 ```
     gmx grompp -f input/em.mdp -o em -pp em -po em
     gmx mdrun -v -deffnm em
     mv em.gro conf.gro
 ```
-Eventually, relaxe the PEG molecule in the NVT ensemble:
+Eventually, you can relaxe the PEG molecule in the NVT ensemble:
 ```
     gmx grompp -f input/nvt.mdp -o nvt -pp nvt -po nvt
     gmx mdrun -v -deffnm nvt
@@ -31,9 +32,9 @@ Eventually, relaxe the PEG molecule in the NVT ensemble:
 ### Output (GROMACS)
 
 Pre-equilibrated topology files are given here : 
-* [PEG200](PEG200/)
-* [PEG600](PEG600/)
-* [PEG1200](PEG1200/) 
+* [PEG200](GROMACS/PEG200/)
+* [PEG600](GROMACS/PEG600/)
+* [PEG1200](GROMACS/PEG1200/) 
  
 This [video](https://www.youtube.com/watch?v=FkFdO58UdOA) has been made using 
 the PEG molecule generated with this script.
