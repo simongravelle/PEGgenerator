@@ -15,7 +15,7 @@ ns_type        		= grid
 ;======================== output ============== ; description
 nstlog 			= 1000 		; number of steps that elapse between writing energies to the log file
 nstenergy 		= 1000			; number of steps that elapse between writing energies to energy file
-nstxout-compressed 	= 1000			; frequency to write coordinates to xtc trajectory
+nstxout-compressed 	= 10			; frequency to write coordinates to xtc trajectory
 
 ;======================== van der Waals ======= ; description
 vdw-type 		= Cut-off		; plain cut-off with rlist >= rvdw

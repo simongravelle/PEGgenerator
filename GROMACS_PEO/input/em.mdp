@@ -7,7 +7,7 @@ nsteps      		= 100			; maximum number of steps to minimize
 ;======================== output ============== ; description
 nstlog 			= 100 			; number of steps that elapse between writing energies to the log file
 nstenergy 		= 100			; number of steps that elapse between writing energies to energy file
-nstxout		 	= 100			; frequency to write coordinates to xtc trajectory
+nstxout		 	= 5			; frequency to write coordinates to xtc trajectory
 
 ;======================== van der Waals ======= ; description
 vdw-type 		= Cut-off		; plain cut-off with rlist >= rvdw
