@@ -1,3 +1,5 @@
+# From : http://mackerell.umaryland.edu/charmm_ff.shtml
+
 # RESI PEGM            0.00  ! Peg monomer for polymer construction
                            !
 # GROUP                      !         H1A       H2A  
@@ -28,3 +30,12 @@
 #IC  C0  C1  O1  C2     0.000  0.000  180.0  0.000  0.000
 #IC  OG0 C0  C1  O1     0.000  0.000  180.0  0.000  0.000
 #IC  HG0 OG0 C0  C1     0.000  0.000  180.0  0.000  0.000
+
+# Methyl
+#PRES HYD1            0.17  ! Complete terminal methyl group adjacent to ether O
+#                           !   H1C -
+#ATOM H1C   HCA3A     0.09  !
+#ATOM C1    CC33A    -0.10  !
+#ATOM H1A   HCA3A     0.09  !
+#ATOM H1B   HCA3A     0.09  !
+#BOND H1C C1
