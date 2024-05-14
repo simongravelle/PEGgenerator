@@ -1,0 +1,21 @@
+;======================== running ============= ; description
+integrator  		= steep			; steepest descent algorithm for energy minimization
+emtol       		= 10			; tolerance is emtol
+emstep      		= 0.0001		; maximum step size
+nsteps      		= 100			; maximum number of steps to minimize
+
+;======================== output ============== ; description
+nstlog 			= 100 			; number of steps that elapse between writing energies to the log file
+nstenergy 		= 100			; number of steps that elapse between writing energies to energy file
+nstxout		 	= 100			; frequency to write coordinates to xtc trajectory
+
+;======================== van der Waals ======= ; description
+vdw-type 		= Cut-off		; plain cut-off with rlist >= rvdw
+rvdw 			= 1.4 			; distance for the LJ cut-off (nm)
+
+; ======================= electrostatics ======= ; description
+coulombtype 		= pme			; fast smooth Particle-Mesh Ewald (SPME) electrostatics
+fourierspacing 		= 0.1			; this should give an accuracy of about 2-3*10^-4
+pme-order 		= 4 			; interpolation order for PME (4 = cubic interpolation)
+rcoulomb 		= 1.4			; distance for the Coulomb cut-off (nm)
+

@@ -1,0 +1,6 @@
+; charmm36
+ CC32A     12.01100 ; -C(sp3)H2 Carbon (eq. CT2)
+ OC30A     15.99940 ; Ether Oxygen
+ HCA2      1.00800 ; aliphatic proton, CH2
+ OC311     15.99940 ; hydroxyl oxygen 
+  HCP1      1.00800 ; polar H 

@@ -4,7 +4,7 @@
 
 ### Description
 
-Python scripts for generating a single all-atom PEG molecule with a number Nseg 
+Python scripts for generating a single all-atom PEG (-OH terminated) or PEG (-CH3 terminated) molecule with a number Nseg
 of monomer. The charmm36 force field is used, and the output is readable by GROMACS
 and LAMMPS.
 
@@ -16,6 +16,7 @@ from the GROMACS folder:
 ```
     sh generatepeg_gromacs.sh
 ```
+
 You can vary the number of monomer by changing the value of Nseg. Then, minimize the energy of the PEG using GROMACS:
 
 ```
@@ -23,7 +24,9 @@ You can vary the number of monomer by changing the value of Nseg. Then, minimize
     gmx mdrun -v -deffnm em
     mv em.gro conf.gro
 ```
+
 Eventually, you can relaxe the PEG molecule in the NVT ensemble:
+
 ```
     gmx grompp -f input/nvt.mdp -o nvt -pp nvt -po nvt
     gmx mdrun -v -deffnm nvt
@@ -31,15 +34,16 @@ Eventually, you can relaxe the PEG molecule in the NVT ensemble:
 
 ### Output (GROMACS)
 
-Pre-equilibrated topology files are given here : 
+Pre-equilibrated topology files are given here :
+
 * [PEG200](GROMACS/PEG200/)
 * [PEG600](GROMACS/PEG600/)
-* [PEG1200](GROMACS/PEG1200/) 
- 
-This [video](https://www.youtube.com/watch?v=FkFdO58UdOA) has been made using 
+* [PEG1200](GROMACS/PEG1200/)
+
+This [video](https://www.youtube.com/watch?v=FkFdO58UdOA) has been made using
 the PEG molecule generated with this script.
 
 ### Contact
 
-Feel free to contact me by email if you have inquiries. You can find contact 
+Feel free to contact me by email if you have inquiries. You can find contact
 details on my [personal page](https://simongravelle.github.io/).

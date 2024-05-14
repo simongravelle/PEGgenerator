@@ -1,0 +1,9 @@
+
+#define _FF_CHARMM
+
+[ defaults ]
+; nbfunc	comb-rule	gen-pairs	fudgeLJ	fudgeQQ
+1	2	yes	1.0	1.0
+
+#include "ffnonbonded.itp"
+#include "ffbonded.itp"

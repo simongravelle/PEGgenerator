@@ -1,0 +1,9 @@
+#include "ff/forcefield.itp"
+#include "ff/peo.itp"
+
+[ System ]
+PEO in water
+
+[ Molecules ]
+
+PEO 1
