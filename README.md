@@ -1,3 +1,6 @@
+[![DOI](https://zenodo.org/badge/441185296.svg)](https://zenodo.org/doi/10.5281/zenodo.13341575)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 # Generate PEG topology for GROMACS and LAMMPS
 
 <img align="right" width="30%" src="PEG.png">
