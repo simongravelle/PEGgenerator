@@ -315,7 +315,7 @@ def check_angle_counts(atoms, angles, CONVERSION_TABLE):
     for types, count in sorted(angle_counts.items()):
         print(f"  {count:4d}  {' - '.join(CONVERSION_TABLE[t] for t in types)}")
 
-def calculate_dihedrals(atoms, angles, conversion_table):
+def calculate_dihedrals(atoms, angles, CONVERSION_TABLE):
     """Generate dihedrals from pairs of angles sharing a central bond."""
 
     dihedrals = []
@@ -326,7 +326,7 @@ def calculate_dihedrals(atoms, angles, conversion_table):
         for atom in atoms
     }
 
-    # Force-field dihedral type IDs from the supplied table.
+    # Force-field dihedral type IDs.
     rules = {
         (1, 1, 2, 1): [1, 2, 3],
         (2, 1, 1, 2): [4, 5],
@@ -335,54 +335,68 @@ def calculate_dihedrals(atoms, angles, conversion_table):
         (4, 1, 1, 2): [12, 13, 14],
     }
 
-    seen = set()
+    print("Raw angles (atom IDs):")
+    for angle in angles:
+        ids = tuple(map(int, angle))
+        names = tuple(
+            CONVERSION_TABLE[int(atoms[atom_id - 1, 2])]
+            for atom_id in ids
+        )
+        print(ids, names)
 
-    for angle1 in angles:
-        i, j, k = map(int, angle1)
+        seen = set()
 
-        for angle2 in angles:
-            a, b, c = map(int, angle2)
+        for angle1 in angles:
+            i, j, k = map(int, angle1)
 
-            # i-j-k and j-k-l share bond j-k
-            if j == a and k == b:
-                path = (i, j, k, c)
+            for angle2 in angles:
+                a, b, c = map(int, angle2)
 
-            # i-j-k and l-k-j share bond j-k
-            elif j == c and k == b:
-                path = (i, j, k, a)
+                # Join angles across the bond j-k.
+                # The shared bond can appear in either orientation.
+                if a == j and b == k:
+                    path = (i, j, k, c)
+                elif b == j and a == k:
+                    path = (i, j, k, c)
+                elif b == k and c == j:
+                    path = (i, j, k, a)
+                elif c == k and b == j:
+                    path = (i, j, k, a)
+                else:
+                    continue
 
-            else:
-                continue
+                if len(set(path)) != 4:
+                    continue
 
-            if len(set(path)) != 4:
-                continue
+                canonical = min(path, path[::-1])
 
-            reverse = path[::-1]
-            canonical = min(path, reverse)
+                if canonical in seen:
+                    continue
 
-            if canonical in seen:
-                continue
-            seen.add(canonical)
+                seen.add(canonical)
 
-            types = tuple(atom_types[x] for x in canonical)
-            matched = rules.get(types) or rules.get(types[::-1])
+                types = tuple(atom_types[x] for x in canonical)
+                type_names = tuple(CONVERSION_TABLE[t] for t in types)
 
-            if matched is None:
-                continue
+                print("Candidate:", canonical, type_names)
 
-            for dtype in matched:
-                dihedrals.append(canonical)
-                dihedral_types.append(dtype)
+                matched = rules.get(types)
 
-    dihedrals = np.array(
-        dihedrals, dtype=int
-    ).reshape(-1, 4)
+                if matched is None:
+                    matched = rules.get(types[::-1])
 
-    dihedral_types = np.array(
-        dihedral_types, dtype=int
-    )
+                if matched is None:
+                    continue
+
+                for dtype in matched:
+                    dihedrals.append(canonical)
+                    dihedral_types.append(dtype)
+
+    dihedrals = np.array(dihedrals, dtype=int).reshape(-1, 4)
+    dihedral_types = np.array(dihedral_types, dtype=int)
 
     print(f"[OK] Generated {len(dihedrals)} dihedrals")
+
     return dihedrals, dihedral_types
 
 def check_dihedral_counts(atoms, dihedrals, CONVERSION_TABLE):
