@@ -8,11 +8,11 @@ from utilities import check_input, convert_coordinates, load_molecule_templates,
     build_ch_bonds, build_oh_bonds, combine_bonds, check_bond_counts, \
     check_missing_ch_bonds, calculate_angles, check_angle_counts, calculate_dihedrals, \
     check_dihedral_counts, validate_dihedrals, combine_angles, combine_dihedrals, \
-    write_lammps_data
+    write_lammps_data, check_dihedral_atom_ids, write_gro
 
 ### number of segments for the PEG molecules
 
-nseg = 22
+nseg = 1
 spacing = 0.28 # distance between 2 monomers
 
 ### initial box size
@@ -38,15 +38,10 @@ atoms = convert_coordinates(atoms)
 expected_atoms = (2 * len(endpatch) + nseg * len(monomer))
 assert atoms.shape == (expected_atoms, 7)
 
-# Analyze atom types
-car, hyd, oxy = analyze_atom_types(atoms, CONVERSION_TABLE)
-
 # Center the molecule 
 atoms = center_molecule(atoms)
 
-assert np.allclose(
-    atoms[:, 3:6].mean(axis=0), 0.0, atol=1e-10
-), "Molecule is not centered"
+assert np.allclose(atoms[:, 4:7].mean(axis=0), 0.0, atol=1e-10)
 
 print("\n[OK] Molecule centered at the origin")
 
@@ -54,7 +49,11 @@ check_box_boundaries(atoms, Lx, Ly, Lz)
 
 validate_atoms(atoms, nseg, monomer, endpatch)
 
+car, hyd, oxy = analyze_atom_types(atoms, CONVERSION_TABLE)
+
 molmass = estimate_molar_mass(atoms)
+
+write_gro("peg.gro", atoms, CONVERSION_TABLE, box=(Lx, Ly, Lz))
 
 # Build bonds
 cc_bonds, cc_bond_types = build_cc_bonds(car)
@@ -77,12 +76,14 @@ check_angle_counts(atoms, angles, CONVERSION_TABLE)
 
 # Build dihedrals
 dihedrals, dihedral_types = calculate_dihedrals(atoms, angles, CONVERSION_TABLE)
+
 check_dihedral_counts(atoms, dihedrals, CONVERSION_TABLE)
 validate_dihedrals(atoms, dihedrals, dihedral_types)
 
 # check angles and dihedrals
 angles = combine_angles(angles, angle_types)
 dihedrals = combine_dihedrals(dihedrals, dihedral_types)
+check_dihedral_atom_ids(atoms, dihedrals)
 
 masses = {1: 12.011, 2: 15.999, 3: 1.008, 4: 15.999, 5: 1.008}
 write_lammps_data("single-peo.data", atoms, bonds, angles, dihedrals, Lx, Ly, Lz, masses)

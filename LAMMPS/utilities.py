@@ -63,44 +63,31 @@ def build_peg(endpatch, monomer, nseg, spacing):
         raise ValueError("spacing must be positive.")
 
     n_atoms = 2 * len(endpatch) + nseg * len(monomer)
-
-    # Columns:
-    # atom ID, molecule ID, atom type, x, y, z, extra property
     atoms = np.zeros((n_atoms, 7), dtype=float)
     cursor = 0
+
+    # Columns: atom ID, molecule ID, atom type, charge, x, y, z
 
     # First end patch
     for m in endpatch:
         atoms[cursor] = (
-            cursor + 1, 1, m[1],
-            m[2], -m[3] - spacing, -m[4], m[5]
-        )
+            cursor + 1, 1, m[1], m[2], -m[3]-spacing, -m[4], -m[5])
         cursor += 1
 
     # Repeated monomers
     for seg in range(nseg):
         for m in monomer:
-            atoms[cursor] = (
-                cursor + 1, 1, m[1],
-                m[2], m[3] + seg * spacing * 2,
-                m[4], m[5]
-            )
+            atoms[cursor] = (cursor + 1, 1, m[1], m[2], m[3] + seg * spacing * 2, m[4], m[5])
             cursor += 1
 
     # Second end patch
-    # Equivalent to the original placement formula,
-    # without depending on the loop variable after the loop.
     end_offset = (2 * (nseg - 1)) * spacing + spacing
 
     for m in endpatch:
-        atoms[cursor] = (
-            cursor + 1, 1, m[1],
-            m[2], m[3] + end_offset, m[4], m[5]
-        )
+        atoms[cursor] = (cursor + 1, 1, m[1], m[2], m[3]+end_offset, m[4], m[5])
         cursor += 1
 
     assert cursor == n_atoms
-
     return atoms
 
 def analyze_atom_types(atoms, conversion_table):
@@ -202,7 +189,7 @@ def build_co_bonds(car, oxy, cutoff=4):
     bonds = []
     for c in car:
         for o in oxy:
-            distance = np.linalg.norm(c[3:6] - o[3:6])
+            distance = np.linalg.norm(c[4:7] - o[4:7])
             if distance <= cutoff:
                 bonds.append(sorted([int(c[0]), int(o[0])]))
     bonds = np.array(bonds, dtype=int).reshape(-1, 2)
@@ -215,7 +202,7 @@ def build_ch_bonds(car, hyd, cutoff=2.5):
     bonds = []
     for c in car:
         for h in hyd:
-            distance = np.linalg.norm(c[3:6] - h[3:6])
+            distance = np.linalg.norm(c[4:7] - h[4:7])
             if distance <= cutoff:
                 bonds.append(sorted([int(c[0]), int(h[0])]))
     bonds = np.array(bonds, dtype=int).reshape(-1, 2)
@@ -228,7 +215,7 @@ def build_oh_bonds(oxy, hyd, cutoff=1.5):
     bonds = []
     for o in oxy:
         for h in hyd:
-            distance = np.linalg.norm(o[3:6] - h[3:6])
+            distance = np.linalg.norm(o[4:7] - h[4:7])
             if distance <= cutoff:
                 bonds.append(sorted([int(o[0]), int(h[0])]))
     bonds = np.array(bonds, dtype=int).reshape(-1, 2)
@@ -265,7 +252,7 @@ def check_missing_ch_bonds(car, hyd, ch_bonds):
     if len(missing) > 0:
         print(f"\nHydrogens without C-H bonds: {len(missing)}")
         for h in missing:
-            distances = np.linalg.norm(car[:, 3:6] - h[3:6], axis=1)
+            distances = np.linalg.norm(car[:, 4:7] - h[4:7], axis=1)
             nearest = np.argmin(distances)
             print(f"H atom {int(h[0])}, type {int(h[2])}: nearest C atom {int(car[nearest, 0])}, distance {distances[nearest]:.3f} Å")
 
@@ -329,46 +316,72 @@ def check_angle_counts(atoms, angles, CONVERSION_TABLE):
         print(f"  {count:4d}  {' - '.join(CONVERSION_TABLE[t] for t in types)}")
 
 def calculate_dihedrals(atoms, angles, conversion_table):
-    """Calculate dihedrals and assign force-field dihedral types."""
+    """Generate dihedrals from pairs of angles sharing a central bond."""
+
     dihedrals = []
     dihedral_types = []
-    atom_types = {int(atom[0]): int(atom[2]) for atom in atoms}
-    central_angled_a = angles[:, 1]
 
-    for a in atoms:
-        ida = int(a[0])
-        tpa = int(a[2])
-        if tpa in (1, 2, 4):
-            id_first_neighbor = np.unique(angles[central_angled_a == ida][:, [0, 2]])
-            id_first_neighbor = id_first_neighbor[id_first_neighbor != ida]
-            for idb in id_first_neighbor:
-                id_second_neighbor = np.unique(angles[central_angled_a == idb][:, [0, 2]])
-                id_second_neighbor = id_second_neighbor[(id_second_neighbor != idb) & (id_second_neighbor != ida)]
-                for idc in id_first_neighbor:
-                    if idc != idb:
-                        for ide in id_second_neighbor:
-                            tpc = atom_types[int(idc)]
-                            tpb = atom_types[int(idb)]
-                            tpe = atom_types[int(ide)]
-                            if ida < int(idb) and tpc != 3 and tpe != 3:
-                                if ((tpc == 1) and (tpa == 1) and (tpb == 4) and (tpe == 5)) or ((tpc == 5) and (tpa == 4) and (tpb == 1) and (tpe == 1)):
-                                    dtype = [6, 7, 8]
-                                elif ((tpc == 4) and (tpa == 1) and (tpb == 1) and (tpe == 2)) or ((tpc == 2) and (tpa == 1) and (tpb == 1) and (tpe == 4)):
-                                    dtype = [12, 13, 14]
-                                elif ((tpc == 1) and (tpa == 1) and (tpb == 2) and (tpe == 1)) or ((tpc == 1) and (tpa == 2) and (tpb == 1) and (tpe == 1)):
-                                    dtype = [1, 2, 3]
-                                elif (tpc == 2) and (tpa == 1) and (tpb == 1) and (tpe == 2):
-                                    dtype = [4, 5]
-                                else:
-                                    print(tpc, tpa, tpb, tpe)
-                                    print(conversion_table[tpc], conversion_table[tpa], conversion_table[tpb], conversion_table[tpe])
-                                    raise ValueError("Unknown dihedral type")
-                                for dt in dtype:
-                                    dihedrals.append([int(idc), ida, int(idb), int(ide)])
-                                    dihedral_types.append(dt)
+    atom_types = {
+        int(atom[0]): int(atom[2])
+        for atom in atoms
+    }
 
-    dihedrals = np.array(dihedrals, dtype=int).reshape(-1, 4)
-    dihedral_types = np.array(dihedral_types, dtype=int)
+    # Force-field dihedral type IDs from the supplied table.
+    rules = {
+        (1, 1, 2, 1): [1, 2, 3],
+        (2, 1, 1, 2): [4, 5],
+        (1, 1, 4, 5): [6, 7, 8],
+        (4, 1, 1, 4): [9, 10, 11],
+        (4, 1, 1, 2): [12, 13, 14],
+    }
+
+    seen = set()
+
+    for angle1 in angles:
+        i, j, k = map(int, angle1)
+
+        for angle2 in angles:
+            a, b, c = map(int, angle2)
+
+            # i-j-k and j-k-l share bond j-k
+            if j == a and k == b:
+                path = (i, j, k, c)
+
+            # i-j-k and l-k-j share bond j-k
+            elif j == c and k == b:
+                path = (i, j, k, a)
+
+            else:
+                continue
+
+            if len(set(path)) != 4:
+                continue
+
+            reverse = path[::-1]
+            canonical = min(path, reverse)
+
+            if canonical in seen:
+                continue
+            seen.add(canonical)
+
+            types = tuple(atom_types[x] for x in canonical)
+            matched = rules.get(types) or rules.get(types[::-1])
+
+            if matched is None:
+                continue
+
+            for dtype in matched:
+                dihedrals.append(canonical)
+                dihedral_types.append(dtype)
+
+    dihedrals = np.array(
+        dihedrals, dtype=int
+    ).reshape(-1, 4)
+
+    dihedral_types = np.array(
+        dihedral_types, dtype=int
+    )
+
     print(f"[OK] Generated {len(dihedrals)} dihedrals")
     return dihedrals, dihedral_types
 
@@ -411,30 +424,79 @@ def combine_dihedrals(dihedrals, dihedral_types):
     print(f"[OK] Combined {len(combined_dihedrals)} dihedrals")
     return combined_dihedrals.astype(int)
 
-def write_lammps_data(filename, atoms, bonds, angles, dihedrals, Lx, Ly, Lz, masses):
+def write_lammps_data(filename, atoms, bonds, angles, dihedrals,
+                      Lx, Ly, Lz, masses):
     """Write molecular topology and coordinates to a LAMMPS data file."""
+
     with open(filename, "w") as f:
         f.write("PEG molecule\n\n")
         f.write(f"{len(atoms)} atoms\n")
         f.write(f"{len(bonds)} bonds\n")
         f.write(f"{len(angles)} angles\n")
         f.write(f"{len(dihedrals)} dihedrals\n\n")
-        f.write(f"{int(atoms[:, 2].max())} atom types\n")
-        f.write(f"{int(bonds[:, 1].max()) if len(bonds) else 0} bond types\n")
-        f.write(f"{int(angles[:, 1].max()) if len(angles) else 0} angle types\n")
-        f.write(f"{int(dihedrals[:, 1].max()) if len(dihedrals) else 0} dihedral types\n\n")
+
+        f.write("5 atom types\n")
+        f.write("5 bond types\n")
+        f.write("8 angle types\n")
+        f.write("14 dihedral types\n\n")
+
         f.write(f"{-Lx/2:.6f} {Lx/2:.6f} xlo xhi\n")
         f.write(f"{-Ly/2:.6f} {Ly/2:.6f} ylo yhi\n")
         f.write(f"{-Lz/2:.6f} {Lz/2:.6f} zlo zhi\n\n")
+
         f.write("Masses\n\n")
         for atom_type, mass in sorted(masses.items()):
             f.write(f"{atom_type} {mass:.6f}\n")
+
         f.write("\nAtoms # full\n\n")
-        np.savetxt(f, atoms[:, [0, 1, 2, 6, 3, 4, 5]], fmt="%d %d %d %.6f %.6f %.6f %.6f")
+        np.savetxt(
+            f,
+            atoms[:, [0, 1, 2, 3, 4, 5, 6]],
+            fmt="%d %d %d %.6f %.6f %.6f %.6f"
+        )
+
         f.write("\nBonds\n\n")
         np.savetxt(f, bonds, fmt="%d")
+
         f.write("\nAngles\n\n")
         np.savetxt(f, angles, fmt="%d")
-        f.write("\nDihedrals\n\n")
-        np.savetxt(f, dihedrals, fmt="%d")
+
+        if len(dihedrals) > 0:
+            f.write("\nDihedrals\n\n")
+            np.savetxt(f, dihedrals, fmt="%d")
+
     print(f"[OK] LAMMPS data written to {filename}")
+
+def check_dihedral_atom_ids(atoms, dihedrals):
+    """Check that dihedral atom IDs exist and each quartet is valid."""
+    atom_ids = set(atoms[:, 0].astype(int))
+    for d in dihedrals:
+        if not all(int(i) in atom_ids for i in d[2:6]):
+            print(f"[ERROR] Invalid atom ID in dihedral: {d}")
+        if len(set(d[2:6])) != 4:
+            print(f"[ERROR] Repeated atom IDs in dihedral: {d}")
+    print("[OK] Dihedral atom ID check complete")
+
+def write_gro(filename, atoms, conversion_table, box, title="PEG molecule"):
+    """Write atom coordinates to a GROMACS .gro file."""
+
+    with open(filename, "w") as f:
+        f.write(f"{title}\n")
+        f.write(f"{len(atoms):5d}\n")
+
+        for atom in atoms:
+            atom_id = int(atom[0])
+            atom_type = int(atom[2])
+            x, y, z = atom[4:7] / 10.0
+            atom_name = conversion_table[atom_type]
+
+            f.write(
+                f"{1:5d}"
+                f"{'PEG':<5s}"
+                f"{atom_name:>5s}"
+                f"{atom_id % 100000:5d}"
+                f"{x:8.3f}{y:8.3f}{z:8.3f}\n"
+            )
+
+        bx, by, bz = box
+        f.write(f"{bx / 10:10.5f}{by / 10:10.5f}{bz / 10:10.5f}\n")
