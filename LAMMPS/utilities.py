@@ -28,7 +28,7 @@ def convert_coordinates(atoms, factor=10.0):
     """Convert the x, y and z columns from nm to Angstroms."""
 
     atoms = atoms.copy()
-    atoms[:, 3:6] *= factor
+    atoms[:, 4:7] *= factor
 
     return atoms
 
@@ -120,10 +120,10 @@ def center_molecule(atoms):
     atoms = atoms.copy()
 
     # Center x, y and z coordinates only
-    coordinates = atoms[:, 3:6]
+    coordinates = atoms[:, 4:7]
     center = coordinates.mean(axis=0)
 
-    atoms[:, 3:6] -= center
+    atoms[:, 4:7] -= center
 
     return atoms
 
@@ -133,7 +133,7 @@ def check_box_boundaries(atoms, Lx, Ly, Lz):
     box_lengths = [Lx, Ly, Lz]
     axis_names = ["x", "y", "z"]
 
-    coordinates = atoms[:, 3:6]
+    coordinates = atoms[:, 4:7]
 
     for col, length, axis in zip(range(3), box_lengths, axis_names):
         lo = coordinates[:, col].min()
@@ -146,8 +146,7 @@ def check_box_boundaries(atoms, Lx, Ly, Lz):
                 f"Atoms outside the {axis}-box: "
                 f"[{lo:.3f}, {hi:.3f}] Å, "
                 f"box limits are [{-length/2:.3f}, "
-                f"{length/2:.3f}] Å"
-            )
+                f"{length/2:.3f}] Å")
 
     print("\n[OK] All atoms are inside the simulation box")
 
@@ -172,20 +171,22 @@ def estimate_molar_mass(atoms):
     print(f"\nPEG molecule with {molmass} g/mol")
     return molmass
 
-def build_cc_bonds(car):
-    """Build carbon-carbon bonds between consecutive carbon pairs."""
+def build_cc_bonds(car, cutoff):
+    """Build carbon-oxygen bonds based on the distance cutoff in Å."""
     bonds = []
-    for idx in range(0, len(car) - 1, 2):
-        idx0 = int(car[idx, 0])
-        idx1 = int(car[idx + 1, 0])
-        bonds.append(sorted([idx0, idx1]))
-    bonds = np.array(bonds, dtype=int).reshape(-1, 2)
-    bond_types = np.ones(len(bonds), dtype=int)
-    print(f"\n[OK] Generated {len(bonds)} carbon-carbon bonds")
+    for c1 in car:
+        for c2 in car:
+            distance = np.linalg.norm(c1[4:7] - c2[4:7])
+            if (distance < cutoff*1.1) & (distance > 0):
+                bonds.append(sorted([int(c1[0]), int(c2[0])]))
+    bonds = np.unique(np.array(bonds, dtype=int).reshape(-1, 2), axis=0)
+    bond_types = np.full(len(bonds), 1, dtype=int)
+    print(f"[OK] Generated {len(bonds)} carbon-carbon bonds")
     return bonds, bond_types
 
-def build_co_bonds(car, oxy, cutoff=4):
+def build_co_bonds(car, oxy, cutoff):
     """Build carbon-oxygen bonds based on the distance cutoff in Å."""
+    # Warning : will not assign the right atom type of C-O-H terminated PEG
     bonds = []
     for c in car:
         for o in oxy:
@@ -193,11 +194,11 @@ def build_co_bonds(car, oxy, cutoff=4):
             if distance <= cutoff:
                 bonds.append(sorted([int(c[0]), int(o[0])]))
     bonds = np.array(bonds, dtype=int).reshape(-1, 2)
-    bond_types = np.full(len(bonds), 2, dtype=int)
+    bond_types = np.full(len(bonds), 3, dtype=int)
     print(f"[OK] Generated {len(bonds)} carbon-oxygen bonds")
     return bonds, bond_types
 
-def build_ch_bonds(car, hyd, cutoff=2.5):
+def build_ch_bonds(car, hyd, cutoff):
     """Build carbon-hydrogen bonds based on the distance cutoff in Å."""
     bonds = []
     for c in car:
@@ -206,7 +207,7 @@ def build_ch_bonds(car, hyd, cutoff=2.5):
             if distance <= cutoff:
                 bonds.append(sorted([int(c[0]), int(h[0])]))
     bonds = np.array(bonds, dtype=int).reshape(-1, 2)
-    bond_types = np.full(len(bonds), 3, dtype=int)
+    bond_types = np.full(len(bonds), 2, dtype=int)
     print(f"[OK] Generated {len(bonds)} carbon-hydrogen bonds")
     return bonds, bond_types
 
@@ -219,7 +220,7 @@ def build_oh_bonds(oxy, hyd, cutoff=1.5):
             if distance <= cutoff:
                 bonds.append(sorted([int(o[0]), int(h[0])]))
     bonds = np.array(bonds, dtype=int).reshape(-1, 2)
-    bond_types = np.full(len(bonds), 4, dtype=int)
+    bond_types = np.full(len(bonds), 5, dtype=int)
     print(f"[OK] Generated {len(bonds)} oxygen-hydrogen bonds")
     return bonds, bond_types
 
@@ -230,20 +231,6 @@ def combine_bonds(*bond_groups):
     bonds = np.column_stack((np.arange(1, len(bonds) + 1), bond_types, bonds))
     print(f"[OK] Combined {len(bonds)} bonds")
     return bonds
-
-def check_bond_counts(atoms, bonds):
-    """Compare generated bond counts with estimates for linear PEG with CH3 ending."""
-    atom_types = atoms[:, 2].astype(int)
-    n_car = np.count_nonzero(atom_types == 1)
-    n_oxy = np.count_nonzero(np.isin(atom_types, [2, 4]))
-    n_hyd = np.count_nonzero(np.isin(atom_types, [3, 5]))
-    actual = {bond_type: np.count_nonzero(bonds[:, 1] == bond_type) for bond_type in [1, 2, 3, 4]}
-    expected_cc = n_car // 2
-    expected_co = n_oxy * 2
-    expected_ch = n_hyd
-    print(f"\nC-C bonds: expected approximately {expected_cc}, generated {actual[1]}")
-    print(f"C-O bonds: expected approximately {expected_co}, generated {actual[2]}")
-    print(f"C-H bonds: expected approximately {expected_ch}, generated {actual[3]}")
 
 def check_missing_ch_bonds(car, hyd, ch_bonds):
     """Find hydrogen atoms that have no generated carbon-hydrogen bond."""
@@ -337,14 +324,14 @@ def calculate_dihedrals(atoms, angles, CONVERSION_TABLE):
         (4, 1, 1, 2): [12, 13, 14],
     }
 
-    print("Raw angles (atom IDs):")
-    for angle in angles:
-        ids = tuple(map(int, angle))
-        names = tuple(
-            CONVERSION_TABLE[atom_types[atom_id]]
-            for atom_id in ids
-        )
-        print(ids, names)
+    # print("Raw angles (atom IDs):")
+    # for angle in angles:
+    #     ids = tuple(map(int, angle))
+    #     names = tuple(
+    #         CONVERSION_TABLE[atom_types[atom_id]]
+    #         for atom_id in ids
+    #     )
+    #     print(ids, names)
 
     # Build a list of angles centered on each atom.
     angles_by_center = {}
@@ -383,8 +370,6 @@ def calculate_dihedrals(atoms, angles, CONVERSION_TABLE):
                         CONVERSION_TABLE[atom_type]
                         for atom_type in types
                     )
-
-                    print("Candidate:", canonical, type_names)
 
                     matched = rules.get(types)
 
@@ -584,6 +569,8 @@ def check_dihedral_atom_ids(atoms, dihedrals):
 def write_gro(filename, atoms, conversion_table, box, title="PEG molecule"):
     """Write atom coordinates to a GROMACS .gro file."""
 
+    bx, by, bz = box
+
     with open(filename, "w") as f:
         f.write(f"{title}\n")
         f.write(f"{len(atoms):5d}\n")
@@ -599,8 +586,7 @@ def write_gro(filename, atoms, conversion_table, box, title="PEG molecule"):
                 f"{'PEG':<5s}"
                 f"{atom_name:>5s}"
                 f"{atom_id % 100000:5d}"
-                f"{x:8.3f}{y:8.3f}{z:8.3f}\n"
+                f"{x+bx/20:8.3f}{y+by/20:8.3f}{z+bz/20:8.3f}\n"
             )
 
-        bx, by, bz = box
         f.write(f"{bx / 10:10.5f}{by / 10:10.5f}{bz / 10:10.5f}\n")
