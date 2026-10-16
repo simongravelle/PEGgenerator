@@ -15,7 +15,7 @@ from utilities import check_input, convert_coordinates, load_molecule_templates,
 
 ### number of segments for the PEG molecules
 
-nseg = 1
+nseg = 24
 spacing_nm = 0.2 # initial distance between 2 monomers in nm
 spacing_A = spacing_nm*10
 ### load end-groups (head) and monomere up and down
