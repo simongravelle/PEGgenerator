@@ -11,8 +11,8 @@ PEG molecule
 14 dihedral types
 
 -12.200000 12.200000 xlo xhi
--6.000000 6.000000 ylo yhi
--5.000000 5.000000 zlo zhi
+-12.200000 12.200000 ylo yhi
+-12.200000 12.200000 zlo zhi
 
 Masses
 

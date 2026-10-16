@@ -44,15 +44,16 @@ x, y, z = atoms[:,4], atoms[:,5], atoms[:,6]
 
 ### initial box size
 Lx, Ly, Lz = np.max(x)*2+10, np.max(y)*2+10, np.max(z)*2+10
+L = np.max([Lx, Ly, Lz])
 
-check_box_boundaries(atoms, Lx, Ly, Lz)
+check_box_boundaries(atoms, L, L, L)
 validate_atoms(atoms, nseg, monomer, endpatch)
 
 car, hyd, oxy = analyze_atom_types(atoms, CONVERSION_TABLE)
 
 molmass = estimate_molar_mass(atoms)
 
-write_gro("peg.gro", atoms, CONVERSION_TABLE, box=(Lx, Ly, Lz))
+write_gro("peg.gro", atoms, CONVERSION_TABLE, box=(L, L, L))
 
 
 # Build bonds
@@ -90,4 +91,4 @@ dihedrals = combine_dihedrals(dihedrals, dihedral_types)
 check_dihedral_atom_ids(atoms, dihedrals)
 
 masses = {1: 12.011, 2: 15.999, 3: 1.008, 4: 15.999, 5: 1.008}
-write_lammps_data("single-peo.data", atoms, bonds, angles, dihedrals, Lx, Ly, Lz, masses)
+write_lammps_data("single-peo.data", atoms, bonds, angles, dihedrals, L, L, L, masses)
